@@ -1,0 +1,30 @@
+1. What are the advantages and disadvantages of each of the two scheduling policies? Also, give the advantages and disadvantages of the round robin scheduling policy originally implemented in Xinu.
+
+Advantages:
+
+AGESCHED:
+1. Provides a solution to starvation by preventing the high priority process running through out and making the other proceeses wait even if the current process is waiting for I/O.
+
+LINUXSCHED:
+1. Even this provides a solution to starvation problem.
+2. Each process is given a chance to run in the same epoch even if the priority is not so high.Carry forward of unused quantum makes the process run for longer time which other wise would have been in the queue after QUANTUM
+
+
+Disadvantages:
+
+In both the cases there is an overhead of traversing through entire queue to increase the priority.
+
+AGESCHED:
+1.Processes with different priority end up running the same amount of time at the end and making them run in round-robin fashion instead of allocating cpu time based on priority.
+2. Priority of the processes in sleep state is not taken care off. For example the main process has the priority of 20 went to sleep state and other process(Proc C) which are less important than main are in ready queue. Each reschedule call will increase the priority of Proc C there by making Process "Main" to wait longer than expected to get its turn to run. 
+
+LINUXSCHED:
+1. A high prioriy process created in the middle of the epoch would not get its turn till the epoch is 0
+
+
+2.Describe the way each of the schedulers affects the NULL process.
+Both the schedulers NULL process comes into picture only when there are no other process in the queue.This is same as the behaviuor in XINU Scheduler.
+
+3.Give two suggestions how the above mentioned aging based scheduler could be changed to attain better fairness keeping the fundamental point of incrementing the priority to be the same in your new ideas.
+a) Any new process created having the base priroty greater than the base priority of other processes in ready queue should be inserte acoordingly. This would ensure that the newly created process gets its chance fast enough.
+b) While inserting back into the ready queue during context-switch, the process should be inserted with its base priority rather than the increased priority. This would make sure that the newly created process has a chance to move to current state soon enough.

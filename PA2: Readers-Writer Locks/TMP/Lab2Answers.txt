@@ -1,0 +1,10 @@
+1.The priority inversion problem could cause that a higher-priority process needs to wait for the completion of a lower-priority process.
+
+Question 1.Priority inheritance is one approach to address this issue. Please give another approach and briefly describe its idea.
+Answer : Disable Interrupts Approach -- Lets say there are 3 processes A, B, and C with Priorities H, M, and L respectively where H > M > L. A and C share common data. When C is in its "critical section" A cannot preempt C as they have data in common. But B preempts C and makes A wait longer than expected violating the priority-based-scheduling policy. To handle this problem disable interrupts while C isin its critical section so that B cannot preempt C.
+
+Question 2.Design a test case to show that your approach can address the priority inversion problem. You should compare the results that derived from the original XINU implementation (use semaphore) and that derived from your implementation (use readers/writer locks).
+Answer : 3 Process A, B , C are created  with priorities 30, 25, 20 respectively. A  & C run the same code. First C acquires the lock and when A tries to acquire the same lock it gets blocked and the priority of C is now 30. So here process C will  not be preempted by B because of the newly acquired priority. So order should be CAB. But in case of Semaphore as process B has higher priority than C, it preempts process C and now the order is CBA. task1.c file is places in SYS & TMP
+
+2.Synchronization is a quite complex issue in operating systems. To show your understanding about process synchronization, you are asked to point out a potential problem in this pesudo-code: task2_sync_issue.c. Multiple reader processes can execute this code concurrently by calling reader(). You are asked to describe an issue it may cause and why it can happen.
+Answer : Multiple readers concurrently executing "reader" code  will make the "writer" wait for long time (Response time is very high ) leading to "Starvation problem". Also if the reader process/writer process gets killed after acquiring the "resource"semaphore, "deadlock" situation arises.

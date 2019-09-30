@@ -1,0 +1,83 @@
+1.Assuming the XINU text begins at address 0x0, draw a rough diagram of XINU’s memory layout with addresses derived from your experimental measurements. Include the information you uncovered from running your version of printsegaddress() and printprocstks(). 
+ ______________________________________
+|                                      |----------------MAX Address
+|--------------------------------------|------------------>0x00ffeff8 (Base Pointer)                                      |
+|               STACK                  |
+|         (Grows Downwards)            |
+|                                      |
+|                                      |
+|                                      |-----------------------Main Stack Frame Limit (0x00ffdffc)
+|                                      |
+|--------------------------------------|------------------>0x00ffefb0 (Stack Pointer)
+|                                      |                                     
+|                                      |
+|                                      |
+|            FREE Memory               |
+|                                      |
+|                                      |
+|                                      |
+|--------------------------------------|                                      
+|                                      |
+|                                      |
+|               HEAP                   |
+|           (Grows Upwards)            |
+|                                      |
+|--------------------------------------|------------------------> end (0x0002c0f8)
+|                                      |
+|                BSS                   |
+|                                      |
+|--------------------------------------|------------------------>edata (0x00022540)
+|                                      |
+|                                      |
+|               DATA                   |
+|                                      |
+|--------------------------------------|-------------------------> extext (0x0001d8b4)
+|                                      |
+|               TEXT                   |
+|                                      |
+------------------------------------------------------- 0x0
+
+2.What is the difference in stack top address before and after calling printtos() ? Draw a diagram to illustrate what are the contents of the items pushed into the stack between these two time points.
+
+Before : When a function is called, the callee function pushes the arguments passed to caller function, and the RETURN Address to the caller functions. So the new stack pointer is (number of arguments * size of each argument  + Size of return address ). In this case difference is 8 bytes which is because of ebp + RETURN address
+
+        |---------------|
+        |main last stack|
+        |    frame    	| 0x00ffefd0    -----------Top of stack of main ( SP before calling the printtos--------
+        |---------------|                                               |
+        |               |                                               |
+        | Return adress | ---------- return address of the main         | ------- difference of 8 bytes in SP value before and after is due to
+        |    main       |                                               |       return adress of main and old EBP value of main get pushed into stack                                                  |---------------|                                               |
+        |               |                                               |
+        |     EBP       |                                               |
+        |-------------- |  0x00ffefc8  ---------- Top of stack (SP)after calling the printtos------------
+
+
+3. Which byte order is adopted in the host machine that we are using ? How did you find out ?
+XINU OS follows LITTLE ENDIAN byte order. This can be found by pushing an integer and printing byte-by-byte using a character variable. SO the least significant bit takes the lowest memory address.
+
+Code
++++++++++++++++
+#include <stdio.h>
+int i=1;
+char *c = (char*)&i; 
+main () {
+if (*c) { 
+	printf("Little");
+}
+else
+	printf("Big");
+} 
+
+4. Briefly describe the mov, push, pusha, pop, and popa instructions in the x86.
+mov - it is meant to move data between registers and memory
+	syntax : mov src, dst
+push - push instruction pushes the content of the operand to the top of the stack and decreses the stack pointer by 4
+	syntax: push %eax
+pop - pop instrcution removes the content at the top of the stack and moves it to the destination and increases the stack pointer by 4
+	syntax pop %eax
+popa - The  popa instructions will store and retrieve the entire integer register state to and from the stack.
+
+5.In a stack frame, local variables are stored below the top of the stack. In task 3, does your result show all the local variables declared in your printtos function? If not, can you explain that? (hint: try to disable the compiler optimization by specifing -O0 in your Makefile)
+The result doen't show the local variables when the compiler optimisation is enabled. This is because the compiler stores these variables in various general purpose registers which is the reason these variable are not seen in the stack frame.
+Disabling code optimization have changed the values, as the values are stored in stack instead of registers

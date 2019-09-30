@@ -1,0 +1,65 @@
+/* agesched.c  -  agesched */
+
+#include <conf.h>
+#include <kernel.h>
+#include <proc.h>
+#include <q.h>
+#include <stdio.h>
+
+unsigned long currSP;	/* REAL sp of current process */
+extern int ctxsw(int, int, int, int);
+/*-----------------------------------------------------------------------
+ * agesched  --  reschedule processor to highest priority ready process and
+ *		 increase the priority of the processes in ready queue.
+ *
+ * Notes:	Upon entry, currpid gives current process id.
+ *		Proctab[currpid].pstate gives correct NEXT state for
+ *			current process if other than PRREADY.
+ *------------------------------------------------------------------------
+ */
+int agesched()
+{
+	register struct	pentry	*optr;	/* pointer to old process entry */
+	register struct	pentry	*nptr;	/* pointer to new process entry */
+
+	/* Aging Scheduler */	
+	
+	int proc_index; 
+	proc_index=q[rdyhead].qnext;
+	while (proc_index != rdytail) {
+		if (proc_index != 0) {
+			kprintf("%s\t%d\t%d\n", proctab[proc_index].pname, proc_index, q[proc_index].qkey);
+			proctab[proc_index].pprio=proctab[proc_index].pprio+1;
+			q[proc_index].qkey+=1;
+		}
+		proc_index=q[proc_index].qnext;
+	}
+	
+
+        /* no switch needed if current process priority higher than next*/	
+
+	if ( ( (optr= &proctab[currpid])->pstate == PRCURR) &&
+	   (lastkey(rdytail)<optr->pprio)) {
+		return(OK);
+	}
+	
+	/* force context switch */
+
+	if (optr->pstate == PRCURR) {
+		optr->pstate = PRREADY;
+		insert(currpid,rdyhead,optr->pprio);
+	}
+
+	/* remove highest priority process at end of ready list */
+
+	nptr = &proctab[ (currpid = getlast(rdytail)) ];
+	nptr->pstate = PRCURR;		/* mark it currently running	*/
+#ifdef	RTCLOCK
+	preempt = QUANTUM;		/* reset preemption counter	*/
+#endif
+	
+	ctxsw((int)&optr->pesp, (int)optr->pirmask, (int)&nptr->pesp, (int)nptr->pirmask);
+	
+	/* The OLD process returns here when resumed. */
+	return OK;
+}
