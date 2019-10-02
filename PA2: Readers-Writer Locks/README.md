@@ -33,15 +33,18 @@ Acquiring a lock has the following meaning:
 2. Lock is already acquired:
 a. For READ:
 If the requesting process has specified the lock type as READ and has sufficiently high priority (not less than the highest priority writer process waiting for the lock), it acquires the lock, else not.
+
 b. For WRITE:
 In this case, the requesting process does not get the lock as WRITE locks are exclusive.
-(4) Releasing Locks
+
+## (4) Releasing Locks
 Simultaneous release allows a process to release one or more locks simultaneously. The system call has the form
 int releaseall (int numlocks, int ldes1, ...)
 and should be defined according to the locking policy given above. Also, each of the lock descriptors must correspond to a lock being held by the calling process.
 If there is a lock in the arguments which is not held by calling process, this function needs to return SYSERR and should not release this lock. However, it will still release other locks which are held by the calling process.
 If a process holding a lock is killed, the kill routine is resposible to release the lock.
-(5) Using Variable Arguments
+
+## (5) Using Variable Arguments
 The call int releaseall (int numlocks, int ldes1,..., int ldesN), has a variable number of arguments. For instance, it could be:
 releaseall(numlocks,ldes1, ldes2);
 releaseall(numlocks,ldes1, ldes2, ldes3, ldes4);
