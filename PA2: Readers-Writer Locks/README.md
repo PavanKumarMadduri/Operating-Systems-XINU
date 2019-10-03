@@ -31,6 +31,7 @@ Control is returned only when the process is able to acquire the lock. Otherwise
 Acquiring a lock has the following meaning:
 1. The lock is free, i.e., no process is owning it. In this case the process that requested the lock gets the lock and sets the type of locking as READ or WRITE.
 2. Lock is already acquired:
+
 a. For READ:
 If the requesting process has specified the lock type as READ and has sufficiently high priority (not less than the highest priority writer process waiting for the lock), it acquires the lock, else not.
 
