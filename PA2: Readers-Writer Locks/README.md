@@ -7,14 +7,15 @@ XINU semaphores do not distinguish between read accesses, which can co-exist, an
 Another problem with XINU's semaphores occurs when a semaphore is deleted at a time when it has processes waiting in its queue. In such situation, sdelete awakens all the waiting processes by moving them from the semaphore queue to the ready list. As a result, a process that is waiting for some event to occur will be awakened, even though the event has not yet occurred. You need to fix this problem in this PA.
 # 2. Interfaces to Implement
 For this lab you must implement the entire readers/writer lock system. This includes code or functions to:
-•	initialize locks (call a function linit() from the sysinit() function in initialize.c)
-•	create and destroy a lock (lcreate() and ldelete())
-•	acquire a lock and release multiple locks (lock() and releaseall())
+*	initialize locks (call a function linit() from the sysinit() function in initialize.c)
+*	create and destroy a lock (lcreate() and ldelete())
+*	acquire a lock and release multiple locks (lock() and releaseall())
+
 Please create files called linit.c, lcreate.c, ldelete.c, lock.c, and releaseall.c that contain these functions. Use a header file called lock.h for your definitions, including the constants DELETED, READ and WRITE. The functions have to be implemented as explained next:
-•	Create a lock: int lcreate(void) - Creates a lock and returns a lock descriptor that can be used in further calls to refer to this lock. This call should return SYSERR if there are no available entries in the lock table. The number of locks allowed is NLOCKS, which you should define in lock.h to be 50.
-•	Destroy a lock: int ldelete (int lockdescriptor) - Deletes the lock identified by the descriptor lockdescriptor (see "Lock Deletion" below).
-•	Acquisition of a lock for read/write: int lock (int ldes1, int type, int priority) - This call is explained below ("Wait on locks with Priority").
-•	Simultaneous release of multiple locks: int releaseall (int numlocks, int ldes1,..., int ldesN)
+*	Create a lock: int lcreate(void) - Creates a lock and returns a lock descriptor that can be used in further calls to refer to this lock. This call should return SYSERR if there are no available entries in the lock table. The number of locks allowed is NLOCKS, which you should define in lock.h to be 50.
+*	Destroy a lock: int ldelete (int lockdescriptor) - Deletes the lock identified by the descriptor lockdescriptor (see "Lock Deletion" below).
+*	Acquisition of a lock for read/write: int lock (int ldes1, int type, int priority) - This call is explained below ("Wait on locks with Priority").
+*	Simultaneous release of multiple locks: int releaseall (int numlocks, int ldes1,..., int ldesN)
 
 ## (1) Lock Deletion
 /* As mentioned before, there is a slight problem with XINU semaphores. The way XINU handles sdelete may have undesirable effects if a semaphore is deleted while a process or processes are waiting on it. Examining the code for wait and sdelete, you will notice that sdelete readies processes waiting on a semaphore being deleted. So they will return from wait with OK. */ As many of you pointed out, the Xinu version for PA2 does not have this problem.
