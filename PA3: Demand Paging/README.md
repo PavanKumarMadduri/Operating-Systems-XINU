@@ -177,6 +177,7 @@ You may also want to use this table to hold other information for page replaceme
 
 4.3 Process Considerations
 With each process having its own page directory page tables there are some new considerations in dealing with processes.
+
 4.3.1 Process Creation
 When a process is created we must now also create page directory and record the address. Also remember that the first 16 megabytes of each process will be mapped to the 16 megabytes of physical memory, so we must initialize the process' page directory accordingly. This is important as our backing stores also depend on this correct mapping.
 A mapping must be created for the new process' private heap and stack, if created with vcreate(). Because you are limited to 16 backing stores you may want to use just one mapping for both the heap and the stack (as with the kernel heap), vgetmem() taking from one end and the stack growing from the other. (Keeping a private stack and paging it is optional, but a private heap must be maintained).
@@ -187,15 +188,18 @@ All frames which currently hold any of its pages should be written to the backin
 All of it's mappings should be removed from the backing store map.
 The backing stores for its heap (and stack if private stack is implemented) should be released (remember backing stores allocated by a process should persist unless the process explicitly releases them).
 The frame used for the process' page directory should be released.
+
 4.3.3 Context Switch
 It should also be clear that now as we switch between processes we must also switch between memory spaces. This is accomplished by adjusting the PDBR register with every context switch. We must be careful, however, as this register must always point to a valid page directory which is in RAM at a page boundary.
 Think carefully about where you place this switch if you put it in resched(): before or after the actual context switch.
 
 4.3.4 System Initialization
+
 The NULL process is somewhat of a special case, as it builds itself in the function sysinit(). The NULL process should not have a private heap (like any process created with create()).
 The following should occur at system initialization:
 
 Set the DS and SS segments' limits to their highest values. This will allow processes to use memory up to the 4 GB limit without generating general protection faults. Make sure the initial stack pointer (initsp) is set to a real physical address (the highest physical address) as it is in normal Xinu. See i386.c. Don't forget to "steal" physical memory frames 2048 - 4096 for backing store purposes.
+
 Initialize all necessary data structures.
 Create the page tables which will map pages 0 through 4095 to the physical 16 MB. These will be called the global page tables.
 Allocate and initialize a page directory for the NULL process.
