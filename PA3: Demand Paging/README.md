@@ -32,7 +32,7 @@ You will implement a corresponding vfreemem() call for the vgetmem(bytes) call. 
 ## 4 Overall Organization
 The following sections discuss at a high level the organization of the system, the various pieces we need to implement demand paging in Xinu and how they relate to each other. This handout describes ideas for implementation in Xinu. You are welcome to use a different implementation strategy if you think it is easier or better as long as it has the same functionality and challenges.
 
-4.1 Memory and Backing Store
+**4.1 Memory and Backing Store**
 
 4.1.1 Backing Stores
 Virtual memory commonly uses disk space to extend the memory of the machine. However, the version of Xinu we use has no file system support. Also, we cannot use the network to communicate with a page server which will manage the backing stores. Instead, we will emulate the backing stores (how they are emulated will be detailed in 4.1.3). To access the backing store you are given the following (These calls are in the directory paging):
@@ -49,6 +49,7 @@ SYSCALL read_bs (char *dst, bsd_t store, int page) This copies pageth page from 
 SYSCALL write_bs (char *src, bsd_t store, int page) This copies a page pointed to by src to the pageth page of the backing store referenced by store. It returns OK on success, SYSERR otherwise.
 
 4.1.2 Memory Layout
+
 The basic Xinu memory layout will be as follows:
 ---------------------------------
 Virtual memory
@@ -85,6 +86,7 @@ All memory below page 4096 will be "global." That is, it is usable and visible b
 Memory at page 4096 and above constitute a process' virtual memory. This address space is private and visible only to the process which owns it. Note that the process' private heap and (optionally) stack are located somewhere in this area.
 
 4.1.3 Backing Store Emulation
+
 Since our version of Xinu does not have file system and network support, we need to emulate the backing store with physical memory. In particular, consider the following Xinu memory layout:
 ---------------------------------
 Virtual Memory
@@ -154,7 +156,8 @@ In the implementation, you need to "steal" physical memory frames 2048 - 4095 (t
 4.1.4 Page Tables and Page Directories
 Page tables and page directories (i.e. outer page tables) can be placed in any free frame. For this project you will not be paging either the page tables or page directories. Because page tables are always resident it is not practical to allocate all potential page tables for a process when it is created (you will, however, allocate a page directory). To map all 4 GB of memory would require 4 MB of page tables! To conserve memory, page tables must be created on-demand. That is, the first time a page is legally touched (i.e. it has been mapped by the process) for which no page table is present a page table should be allocated. Conversely, when a page table is no longer needed it should be removed to conserve space.
 
-4.2 Supportting Data Structures
+**4.2 Supportting Data Structures**
+
 4.2.1 Finding the backing store for a Virtual Address
 You may realize that there is a problem: if a process can map multiple address ranges to different backing stores, how does one figure out which backing store a page needs to be read from (or written to) when it is being brought into (removed from) a frame?
 To accomplish this you need to keep track of which backing store the process was allocated when it was created using vcreate. Finding the offset (i.e the particular page within the store to write/read from) can be calculated using the virtual page number. You may need to declare a new kernel data structure which maps virtual address spaces to backing store descriptors. We will call this the backing store map. It should be a tuple like:
@@ -168,6 +171,7 @@ f (pid , vaddr)= > {store, pageoffset within store}
 The function xmmap() will add a mapping to this table. xmunmap() will remove a mapping from this table.
 
 4.2.2 Inverted Page Table
+
 When writing out a dirty page you may have noticed the only way to figure out which virtual page and process (and thus which backing store) a dirty frame belongs to would be to traverse the page tables of every process looking for a frame location that corresponds to the frame we wish to write out. This is highly inefficient. To prevent this, we can use another kernel data structure, an inverted page table. The inverted page table contains tuples like:
 { framenumber, pid, virtual pagenumber }
 
@@ -175,7 +179,7 @@ Of course, if we use an array of size NFRAMES the frame number is implicit and j
 
 You may also want to use this table to hold other information for page replacement (i.e., any data needed to estimate page replacement policy).
 
-4.3 Process Considerations
+**4.3 Process Considerations**
 With each process having its own page directory page tables there are some new considerations in dealing with processes.
 
 4.3.1 Process Creation
@@ -206,7 +210,8 @@ Allocate and initialize a page directory for the NULL process.
 Set the PDBR register to the page directory for the NULL process.
 Install the page fault interrupt service routine.
 Enable paging.
-4.4 The Interrupt Service Routine (ISR)
+
+**4.4 The Interrupt Service Routine (ISR)**
 A page fault triggers an interrupt 14. When an interrupt occurs the machine pushes CS:IP and then an error code
 ----------
 error code
@@ -222,7 +227,8 @@ It then jumps to a predetermined point, the ISR. To specify the ISR we use the r
 
 set_evec(int interrupt, (void (*isr)(void))) (see evec.c)
 
-4.5 Faults and Replacement Policies
+**4.5 Faults and Replacement Policies**
+
 4.5.1 Page Faults
 A page fault indicates one of two things: the virtual page on which the faulted address exists is not present or the page table which contains the entry for the page on which the faulted address exists is not present. To deal with a page fault you must do the following:
 Get the faulted address a.
