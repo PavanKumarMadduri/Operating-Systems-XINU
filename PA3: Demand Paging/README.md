@@ -88,6 +88,7 @@ Memory at page 4096 and above constitute a process' virtual memory. This address
 4.1.3 Backing Store Emulation
 
 Since our version of Xinu does not have file system and network support, we need to emulate the backing store with physical memory. In particular, consider the following Xinu memory layout:
+
 ---------------------------------
 Virtual Memory
 
@@ -212,7 +213,9 @@ Install the page fault interrupt service routine.
 Enable paging.
 
 **4.4 The Interrupt Service Routine (ISR)**
+
 A page fault triggers an interrupt 14. When an interrupt occurs the machine pushes CS:IP and then an error code
+
 ----------
 error code
 ----------
@@ -220,6 +223,7 @@ IP
 ----------
 CS
 ----------
+
 ...
 ...
 
